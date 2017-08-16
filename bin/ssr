@@ -1,0 +1,180 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          ShadowsocksR
+# Short-Description: Fast tunnel proxy that helps you bypass firewalls
+# Description:       Start or stop the ShadowsocksR-python client
+### END INIT INFO
+
+# Author: vinew.cc
+
+NAME=ShadowsocksR
+DIR=$HOME/APP/SRK
+KCP_PID=$DIR/pid/kcptun.pid
+PAC_PID=$DIR/pid/pac.pid
+SSR_PID=$DIR/pid/shadowsocksr.pid
+RET_VAL=0
+
+if [ ! -d $DIR ]; then
+    mkdir -p $DIR
+    if [ $? -ne 0 ]; then
+        echo "Creating PID directory $DIR failed"
+        exit 1
+    fi
+fi
+
+check_PAC() {
+    if [ -r $PAC_PID ]; then
+        read PAC < $PAC_PID
+        if ps -p $PAC | grep SimpleHTTPServer >/dev/null; then
+            return 0
+        else
+            rm -f $PAC_PID
+            return 1
+        fi
+    else
+        return 2
+    fi
+}
+
+check_kcptun() {
+    if [ -r $KCP_PID ]; then
+        read KCP < $KCP_PID
+        if ps -p $KCP | grep client >/dev/null; then
+            return 0
+        else
+            rm -f $KCP_PID
+            return 1
+        fi
+    else
+        return 2
+    fi
+}
+
+check_ssr() {
+    if [ -r $SSR_PID ]; then
+        read SSR < $SSR_PID
+        if ps -p $SSR | grep local.py >/dev/null; then
+            return 0
+        else
+            rm -f $SSR_PID
+            return 1
+        fi
+    else
+        return 2
+    fi
+}
+
+start(){
+    if check_ssr; then
+        echo "$NAME (pid $SSR) is already running..."
+        return 0
+    fi
+    if check_PAC; then
+        echo "PAC (pid $PAC) is already running..."
+    else
+        bash ${DIR}/pac.sh
+        echo "Starting PAC success"
+    fi
+    if check_kcptun; then
+        echo "kcptun (pid $PID) is already running..."
+    else
+        bash ${DIR}/kcp_ssr.sh
+        echo "Starting kcptun success"
+    fi
+    bash ${DIR}/ssr_start.sh
+    if check_ssr; then
+        echo "Starting $NAME success"
+    else
+        echo "Starting $NAME failed"
+        RET_VAL=1
+    fi
+}
+
+stop(){
+    if check_PAC; then
+        kill -9 $PAC
+        rm -f $PAC_PID
+        echo "Stopping PAC success"
+    else
+        echo "PAC is stopped"
+    fi
+    if check_kcptun; then
+        kill -9 $KCP
+        rm -f $KCP_PID
+        echo "Stopping kcptun success"
+    else
+        echo "kcptun is stopped"
+    fi
+    if check_ssr; then
+        bash ${DIR}/ssr_stop.sh
+        rm -rf $DIR/shadowsocksr.log
+        echo "Stopping $NAME success"
+    else
+        echo "$NAME is stopped"
+        RET_VAL=1
+    fi
+}
+
+status(){
+    check_PAC
+    case $? in
+        0)
+        echo "PAC (pid $PAC) is running..."
+        ;;
+        1|2)
+        echo "PAC is stopped"
+        RET_VAL=1
+        ;;
+    esac
+    check_kcptun
+    case $? in
+        0)
+        echo "kcptun (pid $KCP) is running..."
+        ;;
+        1|2)
+        echo "kcptun is stopped"
+        RET_VAL=1
+        ;;
+    esac
+    check_ssr
+    case $? in
+        0)
+        echo "$NAME (pid $SS) is running..."
+        echo "↓ ↓ ↓ ↓ ↓ more info ↓ ↓ ↓ ↓ ↓"
+        bash ${DIR}/ssr_tail.sh
+        ;;
+        1|2)
+        echo "$NAME is stopped"
+        RET_VAL=1
+        ;;
+    esac
+}
+
+pacupdate() {
+   bash ${DIR}/gfwlist2pac.sh
+}
+
+case "$1" in
+'start')
+    start
+    ;;   
+'stop')
+    stop
+    ;; 
+'status')
+    status
+    ;;
+'restart')
+    stop
+    start
+    RETVAL=$?
+    ;;  
+'pacupdate')
+    pacupdate
+    ;; 
+*)
+    echo "Usage: $0 { start | stop | restart | status | pacupdate}"
+    RETVAL=1
+    ;;
+esac
+exit $RETVAL
