@@ -1,5 +1,5 @@
 # 说明
-- 需要OSX10.7以上系统
+- 需要OSX10.8以上系统
 - SS支持AEAD算法及simple-obfs混淆，SSR支持auth_chain_b及以前的混淆，kcptun使用[@xtaci](https://github.com/xtaci/kcptun/releases)预编译版
 - 安装目录`$HOME/APP/SRK`
 - 请修改`SRK/config`以及`SRK/kcptun`下的配置文件
