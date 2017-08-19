@@ -7,12 +7,41 @@
 mkdir $HOME/APP
 mv $PWD $HOME/APP
 DIR=$HOME/APP/SRK
+osx_vers=$(sw_vers -productVersion | awk -F "." '{print $2}')
+cmd_line_tools_temp_file="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
 
 check_installed()
 {
 if [ ! -d /Library/Developer/CommandLineTools ]; then
-	  echo -e "\033[41;37m Installing Command Line Tools. \033[0m"
-      xcode-select --install
+	echo -e "\033[41;37m Installing CommandLineTools. \033[0m"
+	  if [[ "$osx_vers" -ge 9 ]]; then
+	touch "$cmd_line_tools_temp_file"
+	cmd_line_tools=$(softwareupdate -l | awk '/\*\ Command Line Tools/ { $1=$1;print }' | tail -1 | sed 's/^[[ \t]]*//;s/[[ \t]]*$//;s/*//' | cut -c 2-)
+	softwareupdate -i "$cmd_line_tools"
+	if [[ -f "$cmd_line_tools_temp_file" ]]; then
+	  rm "$cmd_line_tools_temp_file"
+	fi
+fi
+if [[ "$osx_vers" -eq 7 ]] || [[ "$osx_vers" -eq 8 ]]; then
+
+	if [[ "$osx_vers" -eq 7 ]]; then
+		DMGURL=http://devimages.apple.com/downloads/xcode/command_line_tools_for_xcode_os_x_lion_april_2013.dmg
+	fi
+	if [[ "$osx_vers" -eq 8 ]]; then
+		 DMGURL=http://devimages.apple.com/downloads/xcode/command_line_tools_for_osx_mountain_lion_april_2014.dmg
+	fi
+		TOOLS=cltools.dmg
+		curl "$DMGURL" -o "$TOOLS"
+		TMPMOUNT=`/usr/bin/mktemp -d /tmp/clitools.XXXX`
+		installer -allowUntrusted -pkg "$(find $TMPMOUNT -name '*.mpkg')" -target /
+		hdiutil detach "$TMPMOUNT"
+		rm -rf "$TMPMOUNT"
+		rm "$TOOLS"
+fi
+    if [ ! -d /Library/Developer/CommandLineTools ]; then
+	echo -e "\033[41;37m CommandLineTools installed failed. \033[0m"
+	exit 1
+	fi
     else
       echo -e "\033[41;37m Command Line Tools is already installed. \033[0m"
 fi
@@ -21,6 +50,10 @@ which brew &> /dev/null
    if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m Installing brew. \033[0m"
         usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        if [ $? -eq 1 ]; then
+		echo -e "\033[41;37m brew installed failed. \033[0m"
+		exit 1
+	    fi
 	  else
 	  	echo -e "\033[41;37m Howebrew is already installed. \033[0m"
 
@@ -30,6 +63,10 @@ which wget &> /dev/null
     if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m Installing wget. \033[0m"
         brew install wget
+        if [ $? -eq 1 ]; then
+		echo -e "\033[41;37m wget installed failed. \033[0m"
+		exit 1
+	    fi
 	  else
 	  	echo -e "\033[41;37m wget is already installed. \033[0m"
 
@@ -39,6 +76,10 @@ which ss-local &> /dev/null
     if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m Installing Shadowsocks-libev. \033[0m"
         brew install shadowsocks-libev
+        if [ $? -eq 1 ]; then
+		echo -e "\033[41;37m Shadowsocks-libev installed failed. \033[0m"
+		exit 1
+	    fi
 	  else
 	  	echo -e "\033[41;37m Shadowsocks-libev is already installed. \033[0m"
 
@@ -48,6 +89,10 @@ which obfs-local &> /dev/null
     if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m Installing simple-obfs. \033[0m"
         brew install simple-obfs
+        if [ $? -eq 1 ]; then
+		echo -e "\033[41;37m simple-obfs installed failed. \033[0m"
+		exit 1
+	    fi
 	  else
 	  	echo -e "\033[41;37m simple-obfs is already installed. \033[0m"
 
@@ -57,6 +102,10 @@ which pip &> /dev/null
     if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m Installing pip. \033[0m"
         sudo easy_install pip
+        if [ $? -eq 1 ]; then
+		echo -e "\033[41;37m pip installed failed. \033[0m"
+		exit 1
+	    fi
 	  else
 	  	echo -e "\033[41;37m pip is already installed. \033[0m"
 
