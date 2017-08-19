@@ -12,10 +12,10 @@ cmd_line_tools_temp_file="/tmp/.com.apple.dt.CommandLineTools.installondemand.in
 
 check_CommandLineTools()
 {
-which gcc &> /dev/null
-    if [ $? -eq 1 ]; then
-	echo -e "\033[41;37m Installing CommandLineTools. \033[0m"
-	if [[ "$osx_vers" -eq 8 ]]; then
+ if [[ "$osx_vers" -eq 8 ]]; then
+   which gcc &> /dev/null
+     if [ $? -eq 1 ]; then
+	  echo -e "\033[41;37m Installing CommandLineTools. \033[0m"
 		DMGURL=http://devimages.apple.com/downloads/xcode/command_line_tools_for_osx_mountain_lion_april_2014.dmg
 		TOOLS=cltools.dmg
 		curl "$DMGURL" -o "$TOOLS"
@@ -24,17 +24,24 @@ which gcc &> /dev/null
 		hdiutil detach "$TMPMOUNT"
 		rm -rf "$TMPMOUNT"
 		rm "$TOOLS"
-	else
+	 which git &> /dev/null
+       if [ $? -eq 1 ]; then
+	      echo -e "\033[41;37m CommandLineTools installed failed. \033[0m"
+	    exit 1
+       fi
+	  else
+        echo -e "\033[41;37m Command Line Tools is already installed. \033[0m"
+      fi
+	  else
+	    if [ ! -d /Library/Developer/CommandLineTools ]; then
         xcode-select --install
+        if [ ! -d /Library/Developer/CommandLineTools ]; then
+        echo -e "\033[41;37m CommandLineTools installed failed. \033[0m"
         fi
-    which gcc &> /dev/null
-    if [ $? -eq 1 ]; then
-	echo -e "\033[41;37m CommandLineTools installed failed. \033[0m"
-	exit 1
-    fi
-       else
-      echo -e "\033[41;37m Command Line Tools is already installed. \033[0m"
-    fi
+        else
+        echo -e "\033[41;37m Command Line Tools is already installed. \033[0m"
+        fi    
+ fi       
 }
 
 check_installed()
