@@ -112,11 +112,15 @@ which pip &> /dev/null
 	fi
 
 if [ ! -d shadowsocks ]; then
-    svn co https://github.com/gfwbak/shadowsocksr/trunk/shadowsocks
-    if [ $? -ne 0 ]; then
-        echo -e "\033[41;37m ShadowsocksR installed failed \033[0m"
-        exit 1
-    fi
+    git clone https://github.com/gfwbak/shadowsocksr.git
+      mv shadowsocksr/shadowsocks shadowsocks
+      rm -rf shadowsocksr
+      if [ $? -ne 0 ]; then
+               echo -e "\033[41;37m ShadowsocksR installed failed \033[0m"
+               exit 1
+           fi
+          else
+               echo -e "\033[41;37m shadowsocksr is already installed. \033[0m"
 fi
 
 }
