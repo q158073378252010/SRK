@@ -20,10 +20,10 @@ KCP_PID=$DIR/pid/kcptun.pid
 SS_PID=$DIR/pid/shadowsocks-libev.pid
 RET_VAL=0
 
-if [ ! -d $DIR ]; then
-    mkdir -p $DIR
+if [ ! -d $DIR/pid ]; then
+    mkdir -p $DIR/pid
     if [ $? -ne 0 ]; then
-        echo "Creating PID directory $DIR failed"
+        echo "Creating PID directory $DIR/pid failed"
         exit 1
     fi
 fi
