@@ -20,6 +20,7 @@ check_CommandLineTools()
 		TOOLS=cltools.dmg
 		curl "$DMGURL" -o "$TOOLS"
 		TMPMOUNT=`/usr/bin/mktemp -d /tmp/clitools.XXXX`
+		hdiutil attach "$TOOLS" -mountpoint "$TMPMOUNT" -nobrowse
 		sudo installer -allowUntrusted -pkg "$(find $TMPMOUNT -name '*.mpkg')" -target /
 		hdiutil detach "$TMPMOUNT"
 		rm -rf "$TMPMOUNT"
@@ -61,7 +62,9 @@ which brew &> /dev/null
 
 which wget &> /dev/null
     if [ $? -eq 1 ]; then
-		echo -e "\033[41;37m Installing wget. \033[0m"
+	        echo -e "\033[41;37m Installing wget. \033[0m"
+	cache=`brew --cache`
+	curl http://www.cpan.org/src/5.0/perl-5.26.0.tar.xz -o $cache/perl-5.26.0.tar.xz
         brew install wget
         if [ $? -eq 1 ]; then
 		echo -e "\033[41;37m wget installed failed. \033[0m"
