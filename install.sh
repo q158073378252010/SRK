@@ -1,6 +1,6 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides:          ss & ssr & kcptun
+# Provides:          ss & ssr & vr & kcptun
 ### END INIT INFO
 
 # Author: vinew.cc
@@ -59,21 +59,6 @@ which brew &> /dev/null
 	  	echo -e "\033[41;37m Howebrew is already installed. \033[0m"
 
 	fi
-
-which wget &> /dev/null
-    if [ $? -eq 1 ]; then
-	        echo -e "\033[41;37m Installing wget. \033[0m"
-	cache=`brew --cache`
-	curl http://www.cpan.org/src/5.0/perl-5.26.0.tar.xz -o $cache/perl-5.26.0.tar.xz
-        brew install wget
-        if [ $? -eq 1 ]; then
-		echo -e "\033[41;37m wget installed failed. \033[0m"
-		exit 1
-	    fi
-	  else
-	  	echo -e "\033[41;37m wget is already installed. \033[0m"
-
-	fi
    
 which ss-local &> /dev/null
     if [ $? -eq 1 ]; then
@@ -130,17 +115,27 @@ fi
 
 handle_file()
 {
-	ln $DIR/bin/ss /usr/local/bin/ss
-	ln $DIR/bin/ssr /usr/local/bin/ssr
+	ln $DIR/bin/* /usr/local/bin
 	
-	wget -N --no-check-certificate https://github.com/xtaci/kcptun/releases/download/v20170525/kcptun-darwin-amd64-20170525.tar.gz
+	kcp=$( curl -s https://api.github.com/repos/xtaci/kcptun/releases/latest | grep browser_download_url | grep 'darwin-amd64-[0-9]*.tar.gz' | head -n 1 | cut -d '"' -f 4 )
+    curl -L $kcp -o kcptun.tar.gz
 	if [ $? -ne 0 ]; then
 		echo -e "\033[41;37m kcptun installed failed \033[0m"
         exit 1
     fi
-    tar xvf kcptun-darwin-amd64-20170525.tar.gz
+    tar xvf kcptun.tar.gz
     mv client_darwin_amd64 kcptun/client
-    rm -rf kcptun-darwin-amd64-20170525.tar.gz server_darwin_amd64
+    rm -rf kcptun.tar.gz server_darwin_amd64
+
+    vr=$( curl -s https://api.github.com/repos/v2ray/v2ray-core/releases/latest | grep browser_download_url | grep 'macos[.]zip' | head -n 1 | cut -d '"' -f 4 )
+    curl -L $vr -o v2ray.zip
+	if [ $? -ne 0 ]; then
+		echo -e "\033[41;37m kcptun installed failed \033[0m"
+        exit 1
+    fi
+    unzip v2ray.zip "*/v2ray" && rm v2ray.zip && mv v2ray* v2ray
+    chmod 755 v2ray/v2ray
+    echo 请修改自行本配置文件 > v2ray/config.json
 }
 
 check_CommandLineTools
