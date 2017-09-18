@@ -5,7 +5,7 @@
 
 # Author: vinew.cc
 mkdir $HOME/APP
-mv $PWD $HOME/APP
+mv $PWD $HOME/APP/SRK
 DIR=$HOME/APP/SRK
 osx_vers=$(sw_vers -productVersion | awk -F "." '{print $2}')
 cmd_line_tools_temp_file="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
