@@ -6,8 +6,9 @@
 
 # 使用方法：
 ```
- git clone https://github.com/vinewx/SRK.git  
- cd SRK  
+ curl -LO https://github.com/vinewx/SRK/archive/dev.zip
+ unzip dev.zip && rm dev.zip
+ cd SRK-dev
  bash install.sh
 ```
 
